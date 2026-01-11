@@ -1,0 +1,101 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+--------------------------------------------------
+-- CONFIG
+--------------------------------------------------
+local ACTIVATE_INTERVAL = 0.08
+
+--------------------------------------------------
+-- STATE
+--------------------------------------------------
+local running = false
+local lastActivate = 0
+
+--------------------------------------------------
+-- GUI
+--------------------------------------------------
+local gui = Instance.new("ScreenGui")
+gui.Name = "SpamUseGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.fromOffset(220,120)
+frame.Position = UDim2.fromScale(0.02,0.7)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,30)
+title.BackgroundTransparency = 1
+title.Text = "ITEM SPAMMER"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+
+local toggleBtn = Instance.new("TextButton", frame)
+toggleBtn.Size = UDim2.fromOffset(180,40)
+toggleBtn.Position = UDim2.fromOffset(20,50)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 14
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(120,50,50)
+toggleBtn.Text = "SPAM: OFF"
+
+--------------------------------------------------
+-- FUNCTIONS
+--------------------------------------------------
+local function getAllTools()
+	local tools = {}
+	for _, t in ipairs(player.Backpack:GetChildren()) do
+		if t:IsA("Tool") then
+			table.insert(tools, t)
+		end
+	end
+	for _, t in ipairs(player.Character:GetChildren()) do
+		if t:IsA("Tool") then
+			table.insert(tools, t)
+		end
+	end
+	return tools
+end
+
+local function equip(tool)
+	if tool.Parent ~= player.Character then
+		tool.Parent = player.Character
+	end
+end
+
+--------------------------------------------------
+-- LOOP
+--------------------------------------------------
+RunService.Heartbeat:Connect(function()
+	if not running then return end
+	if tick() - lastActivate < ACTIVATE_INTERVAL then return end
+	lastActivate = tick()
+
+	for _, tool in ipairs(getAllTools()) do
+		equip(tool)
+		pcall(function()
+			tool:Activate()
+		end)
+	end
+end)
+
+--------------------------------------------------
+-- UI
+--------------------------------------------------
+toggleBtn.MouseButton1Click:Connect(function()
+	running = not running
+	if running then
+		toggleBtn.Text = "SPAM: ON"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(60,160,60)
+	else
+		toggleBtn.Text = "SPAM: OFF"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(120,50,50)
+	end
+end)
